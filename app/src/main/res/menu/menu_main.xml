@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.myapplication.MainActivity">
+    <item
+        android:id="@+id/new_note"
+        android:orderInCategory="100"
+        android:title="@string/new_note"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/camera"
+        android:orderInCategory="100"
+        android:title="@string/camera"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/videoViewer"
+        android:orderInCategory="100"
+        android:title="Video"
+        app:showAsAction="never" />
+
+    <item
+    android:id="@+id/audioRecording"
+    android:orderInCategory="100"
+    android:title="Audio Recording"
+    app:showAsAction="never" />
+
+
+</menu>
