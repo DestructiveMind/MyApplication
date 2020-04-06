@@ -29,20 +29,19 @@ import androidx.appcompat.app.AppCompatActivity;
 public class Transcriber extends Activity implements RecognitionListener {
 
 
-    private TextView returnedText;
-    private Button button;
-    private SpeechRecognizer speech = null;
-    private Intent recognizerIntent;
-    private String LOG_TAG = "VoiceRecognitionActivity";
-    private Boolean running;
-    private View.OnClickListener recordingListener = new View.OnClickListener(){
+    public TextView returnedText;
+    public Button button;
+    public SpeechRecognizer speech = null;
+    public Intent recognizerIntent;
+    public String LOG_TAG = "VoiceRecognitionActivity";
+    public Boolean running;
+    public View.OnClickListener recordingListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (!running){
+            if (!running) {
                 speech.startListening(recognizerIntent);
                 running = true;
-            }
-            else{
+            } else {
                 speech.stopListening();
             }
         }
@@ -52,23 +51,23 @@ public class Transcriber extends Activity implements RecognitionListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_audio_recording);
-        returnedText = (TextView) findViewById(R.id.transcribeNote);
-        button = findViewById(R.id.recordAudio);
-        running =false;
+        // setContentView(R.layout.activity_audio_recording);
+        //  returnedText = (TextView) findViewById(R.id.transcribeNote);
+        //  button = findViewById(R.id.recordAudio);
+        running = false;
 
 
         speech = SpeechRecognizer.createSpeechRecognizer(this);
         speech.setRecognitionListener(this);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,"en");
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,this.getPackageName());
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,this.getPackageName());
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en");
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
 
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
 
-       button.setOnClickListener(recordingListener);
+        //  button.setOnClickListener(recordingListener);
 
     }
 
@@ -101,7 +100,7 @@ public class Transcriber extends Activity implements RecognitionListener {
     @Override
     public void onEndOfSpeech() {
         Log.i(LOG_TAG, "onEndOfSpeech");
-       running = false;
+        running = false;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.example.myapplication.AudioRecording;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -11,6 +12,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.myapplication.R;
@@ -26,7 +28,7 @@ import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
-public class AudioRecordingActivity extends Transcriber{
+public class AudioRecordingActivity extends Transcriber {
     Button mRecord;
     String AudioSavePathInDevice = null;
     public static final int RequestPermissionCode = 1000;
@@ -37,7 +39,6 @@ public class AudioRecordingActivity extends Transcriber{
     private Boolean currentlyRecording;
     private MediaRecorder recorder = new MediaRecorder();
     private Handler handler = new Handler();
-    Transcriber mTranscriber;
     //Runnable updater
     final Runnable updater = new Runnable() {
         @Override
@@ -55,6 +56,7 @@ public class AudioRecordingActivity extends Transcriber{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_recording);
         visualizerView = findViewById(R.id.visualizer);
+        returnedText = findViewById(R.id.transcribeNote);
         mRecord = findViewById(R.id.recordAudio);
         mRecord.setTag(1);
         mRecord.setText("Record");
@@ -62,16 +64,15 @@ public class AudioRecordingActivity extends Transcriber{
         random = new Random();
         currentlyRecording = false;
 
-
         mRecord.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 final int status = (Integer) v.getTag();
                 if (checkPermission()) {
                     if (!currentlyRecording) {
-
                         AudioSavePathInDevice = Environment.getExternalStorageDirectory().getAbsolutePath()
                                 + "." + "/" + CreateRandomAudioFileName(5) + "AudioRecording.3gp";
                         MediaRecorderReady();
+                        speech.startListening(recognizerIntent);
 
                         try {
                             recorder.prepare();
@@ -79,7 +80,7 @@ public class AudioRecordingActivity extends Transcriber{
 
                         } catch (IllegalStateException | IOException ignored) {
                         }
-//                        mRecord.setEnabled(false);
+
                         Toast.makeText(AudioRecordingActivity.this, "Recording Started", Toast.LENGTH_LONG).show();
                         if (status == 1) {
                             mRecord.setText("Stop Recording");
@@ -87,8 +88,8 @@ public class AudioRecordingActivity extends Transcriber{
                             mRecord.setTag(0);
                         }
                         currentlyRecording = true;
-                    }
-                    else {
+                    } else {
+                        speech.stopListening();
                         try {
                             recorder.stop();
                         } catch (IllegalStateException e) {
@@ -174,7 +175,7 @@ public class AudioRecordingActivity extends Transcriber{
         super.onDestroy();
         handler.removeCallbacks(updater);
         handler.removeCallbacks(updater);
-        if (currentlyRecording){
+        if (currentlyRecording) {
             recorder.stop();
             recorder.reset();
             recorder.release();
