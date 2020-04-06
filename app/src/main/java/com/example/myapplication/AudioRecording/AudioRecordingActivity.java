@@ -1,7 +1,5 @@
 package com.example.myapplication.AudioRecording;
 
-import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -10,23 +8,17 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.speech.RecognizerIntent;
-import android.text.Editable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.myapplication.R;
+import com.example.myapplication.Transcription.Transcriber;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Random;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -34,7 +26,7 @@ import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
-public class AudioRecordingActivity extends AppCompatActivity {
+public class AudioRecordingActivity extends Transcriber{
     Button mRecord;
     String AudioSavePathInDevice = null;
     public static final int RequestPermissionCode = 1000;
@@ -45,10 +37,7 @@ public class AudioRecordingActivity extends AppCompatActivity {
     private Boolean currentlyRecording;
     private MediaRecorder recorder = new MediaRecorder();
     private Handler handler = new Handler();
-    //Speech to text
-    private TextView tNote;
-    private final int REQ_CODE=101;
-
+    Transcriber mTranscriber;
     //Runnable updater
     final Runnable updater = new Runnable() {
         @Override
@@ -66,7 +55,6 @@ public class AudioRecordingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_recording);
         visualizerView = findViewById(R.id.visualizer);
-        tNote = findViewById(R.id.transcribeNote);
         mRecord = findViewById(R.id.recordAudio);
         mRecord.setTag(1);
         mRecord.setText("Record");
@@ -88,8 +76,6 @@ public class AudioRecordingActivity extends AppCompatActivity {
                         try {
                             recorder.prepare();
                             recorder.start();
-                            getSpeechInput(tNote, AudioRecordingActivity.this);
-                            tNote.setText((CharSequence) tNote);
 
                         } catch (IllegalStateException | IOException ignored) {
                         }
@@ -181,34 +167,7 @@ public class AudioRecordingActivity extends AppCompatActivity {
                 result1 == PackageManager.PERMISSION_GRANTED;
 
     }
-    public void getSpeechInput(View view, Context context) {
-        tNote = findViewById(R.id.transcribeNote);
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        if (intent.resolveActivity(context.getPackageManager()) != null) {
-            try {
-                startActivityForResult(intent, REQ_CODE);
-            } catch (ActivityNotFoundException a){
-                Toast.makeText(getApplicationContext(), "Device Not Supported", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(this, "Speech Input Not Supported", Toast.LENGTH_LONG).show();
-        }
-    }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
 
-        switch (requestCode) {
-            case REQ_CODE:
-                if(requestCode == REQ_CODE) {
-                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    tNote.append(result.get(0));
-                }
-                break;
-        }
-    }
 
     @Override
     protected void onDestroy() {
@@ -227,4 +186,5 @@ public class AudioRecordingActivity extends AppCompatActivity {
         super.onWindowFocusChanged(hasFocus);
         handler.post(updater);
     }
+
 }

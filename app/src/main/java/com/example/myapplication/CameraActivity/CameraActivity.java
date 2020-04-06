@@ -49,7 +49,7 @@ public class CameraActivity extends AppCompatActivity {
      * check to see if a camera exists on device
      */
     private boolean checkCameraHardware(Context context) {
-        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
             // this device has a camera
             return true;
         } else {

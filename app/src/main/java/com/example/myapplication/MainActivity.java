@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import com.example.myapplication.AudioRecording.AudioRecordingActivity;
 import com.example.myapplication.CameraActivity.CameraActivity;
 import com.example.myapplication.NotesActivity.NotesActivity;
+import com.example.myapplication.Transcription.Transcriber;
 import com.example.myapplication.VideoRecording.VideoCamera;
 import com.example.myapplication.VideoRecording.VideoCameraPreview;
 

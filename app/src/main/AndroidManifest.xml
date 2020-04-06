@@ -30,7 +30,7 @@
         <activity android:name=".VideoRecording.VideoCameraPreview" />
 
         <activity android:name=".NotesActivity.NotesActivity" />
-
+        <activity android:name=".Transcription.Transcriber"/>
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
