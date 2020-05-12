@@ -12,9 +12,7 @@ import android.view.MenuItem;
 import com.example.myapplication.AudioRecording.AudioRecordingActivity;
 import com.example.myapplication.CameraActivity.CameraActivity;
 import com.example.myapplication.NotesActivity.NotesActivity;
-import com.example.myapplication.Transcription.Transcriber;
 import com.example.myapplication.VideoRecording.VideoCamera;
-import com.example.myapplication.VideoRecording.VideoCameraPreview;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -62,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (id == R.id.videoViewer) {
-            Intent videoIntent = new Intent(MainActivity.this, VideoCameraPreview.class);
+            Intent videoIntent = new Intent(MainActivity.this, VideoCamera.class);
             startActivity(videoIntent);
             return false;
         }
