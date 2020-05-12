@@ -1,18 +1,16 @@
 package com.example.myapplication.AudioRecording;
 
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.myapplication.R;
@@ -74,11 +72,12 @@ public class AudioRecordingActivity extends Transcriber {
                         MediaRecorderReady();
                         speech.startListening(recognizerIntent);
 
-                        try {
+
+                       try {
                             recorder.prepare();
                             recorder.start();
 
-                        } catch (IllegalStateException | IOException ignored) {
+                       } catch (IllegalStateException | IOException ignored) {
                         }
 
                         Toast.makeText(AudioRecordingActivity.this, "Recording Started", Toast.LENGTH_LONG).show();
@@ -90,6 +89,8 @@ public class AudioRecordingActivity extends Transcriber {
                         currentlyRecording = true;
                     } else {
                         speech.stopListening();
+//                        Uri audioUri = recognizerIntent.getData();
+//                        Log.d(LOG_TAG, audioUri.toString());
                         try {
                             recorder.stop();
                         } catch (IllegalStateException e) {
@@ -112,10 +113,11 @@ public class AudioRecordingActivity extends Transcriber {
 
     public void MediaRecorderReady() {
         recorder = new MediaRecorder();
-        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        recorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
         recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         recorder.setOutputFile("dev/null");
+
     }
 
     public String CreateRandomAudioFileName(int string) {

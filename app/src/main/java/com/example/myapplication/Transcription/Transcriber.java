@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -64,7 +65,8 @@ public class Transcriber extends Activity implements RecognitionListener {
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
-
+        recognizerIntent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
+        recognizerIntent.putExtra("android.speech.extra.GET_AUDIO", true);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
 
         //  button.setOnClickListener(recordingListener);
@@ -100,14 +102,13 @@ public class Transcriber extends Activity implements RecognitionListener {
     @Override
     public void onEndOfSpeech() {
         Log.i(LOG_TAG, "onEndOfSpeech");
-        running = false;
+       // running = false;
     }
 
     @Override
     public void onError(int errorCode) {
         String errorMessage = getErrorText(errorCode);
         Log.d(LOG_TAG, "FAILED " + errorMessage);
-        returnedText.setText(errorMessage);
         running = false;
     }
 
@@ -130,9 +131,17 @@ public class Transcriber extends Activity implements RecognitionListener {
     public void onResults(Bundle results) {
         Log.i(LOG_TAG, "onResults");
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        String text = matches.get(0);
+        String result = matches.get(0);
+        Uri audioUri = recognizerIntent.getData();
+        if(audioUri!= null){
+            Log.d(LOG_TAG, audioUri.toString());
+        } else {
+            Log.d(LOG_TAG, "null");
+        }
+        if(result != null) {
+            returnedText.setText(result);
+        }
 
-        returnedText.setText(text);
     }
 
     @Override
