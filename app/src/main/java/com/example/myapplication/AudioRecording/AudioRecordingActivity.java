@@ -1,10 +1,12 @@
 package com.example.myapplication.AudioRecording;
 
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -16,9 +18,12 @@ import android.widget.Toast;
 import com.example.myapplication.R;
 import com.example.myapplication.Transcription.Transcriber;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -37,6 +42,7 @@ public class AudioRecordingActivity extends Transcriber {
     private Boolean currentlyRecording;
     private MediaRecorder recorder = new MediaRecorder();
     private Handler handler = new Handler();
+
     //Runnable updater
     final Runnable updater = new Runnable() {
         @Override
@@ -62,23 +68,34 @@ public class AudioRecordingActivity extends Transcriber {
         random = new Random();
         currentlyRecording = false;
 
-        mRecord.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
+                mRecord.setOnClickListener(new View.OnClickListener() {
+                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    public void onClick(View v) {
                 final int status = (Integer) v.getTag();
+                Log.d("Audio Status", "Permissions status: " + Boolean.toString(checkPermission()));
+
+                //check if the user has provided permission
                 if (checkPermission()) {
+                    //check if the app is currently recording
                     if (!currentlyRecording) {
-                        AudioSavePathInDevice = Environment.getExternalStorageDirectory().getAbsolutePath()
-                                + "." + "/" + CreateRandomAudioFileName(5) + "AudioRecording.3gp";
+                        //AudioSavePathInDevice = Environment.getExternalStorageDirectory().getAbsolutePath()
+                        //        + "." + "/" + CreateRandomAudioFileName(5) + "AudioRecording.3gp";
+
+                        //create a new media recorder
                         MediaRecorderReady();
+
+                        // start listening
                         speech.startListening(recognizerIntent);
 
-
-                       try {
+                        //try to prepare and start the recorder
+                        try {
                             recorder.prepare();
                             recorder.start();
 
-                       } catch (IllegalStateException | IOException ignored) {
+                        } catch (IllegalStateException | IOException e) {
+                            Log.d("Start Recording Error", e.toString());
                         }
+
 
                         Toast.makeText(AudioRecordingActivity.this, "Recording Started", Toast.LENGTH_LONG).show();
                         if (status == 1) {
@@ -86,38 +103,69 @@ public class AudioRecordingActivity extends Transcriber {
                             mRecord.setBackgroundColor(Color.RED);
                             mRecord.setTag(0);
                         }
+
+                        //modify the currently
                         currentlyRecording = true;
                     } else {
+                        //stop listening
                         speech.stopListening();
-//                        Uri audioUri = recognizerIntent.getData();
-//                        Log.d(LOG_TAG, audioUri.toString());
+
+                        //Uri audioUri = recognizerIntent.getData();
+                        //Log.d(LOG_TAG, audioUri.toString());
+
+                        //try to stop the recording
                         try {
+
                             recorder.stop();
                         } catch (IllegalStateException e) {
+                            Log.d("End Recording Error", e.toString());
                         }
+
+                        //notify the user recording has stopped
                         Toast.makeText(AudioRecordingActivity.this, "Recording Stopped", Toast.LENGTH_LONG).show();
 
+                        //convert back the button text and color
                         if (status == 0) {
                             mRecord.setText("Start Recording");
                             mRecord.setBackgroundColor(Color.GRAY);
                             mRecord.setTag(1);
                         }
+
+                        //modify the currently recording variable
                         currentlyRecording = false;
+
+                        //display the stored file names
+                        String[] files = getApplicationContext().fileList();
+
+                        StringBuilder file_names = new StringBuilder();
+
+                        for (String file : files) {
+                            file_names.append(file).append(" ");
+                        }
+
+                        returnedText.setText(file_names.toString());
                     }
                 } else {
+                    //if the user has not provided permission
                     requestPermission();
                 }
             }
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void MediaRecorderReady() {
         recorder = new MediaRecorder();
         recorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
         recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        recorder.setOutputFile("dev/null");
+        
+        //get a file object
+        Context context = getApplicationContext();
+        File file = new File(context.getFilesDir(), "temp");
 
+        //set it as the output file
+        recorder.setOutputFile(file);
     }
 
     public String CreateRandomAudioFileName(int string) {
@@ -133,8 +181,9 @@ public class AudioRecordingActivity extends Transcriber {
     }
 
     private void requestPermission() {
-        ActivityCompat.requestPermissions(AudioRecordingActivity.this, new
-                String[]{WRITE_EXTERNAL_STORAGE, RECORD_AUDIO, INTERNET}, RequestPermissionCode);
+        //request audio recording permissions
+        ActivityCompat.requestPermissions(AudioRecordingActivity.this, new String[]{WRITE_EXTERNAL_STORAGE, RECORD_AUDIO, INTERNET}, RequestPermissionCode);
+
         Log.d("Audio Record:", "permission requested");
     }
 
@@ -150,7 +199,8 @@ public class AudioRecordingActivity extends Transcriber {
                     boolean RecordPermission = grantResults[1] ==
                             PackageManager.PERMISSION_GRANTED;
 
-                    if (StoragePermission && RecordPermission) {
+                    Log.d("Storage Permission", "" + Boolean.toString(StoragePermission));
+                    if (RecordPermission) {
                         Toast.makeText(AudioRecordingActivity.this, "Permission Granted",
                                 Toast.LENGTH_LONG).show();
                     } else {
@@ -162,13 +212,12 @@ public class AudioRecordingActivity extends Transcriber {
     }
 
     public boolean checkPermission() {
+        //check if the audio recording permission was provided
         int result = ContextCompat.checkSelfPermission(getApplicationContext(),
-                WRITE_EXTERNAL_STORAGE);
-        int result1 = ContextCompat.checkSelfPermission(getApplicationContext(),
                 RECORD_AUDIO);
-        return result == PackageManager.PERMISSION_GRANTED &&
-                result1 == PackageManager.PERMISSION_GRANTED;
 
+        //return
+        return result == PackageManager.PERMISSION_GRANTED;
     }
 
 
