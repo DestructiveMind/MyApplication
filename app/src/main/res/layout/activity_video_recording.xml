@@ -20,5 +20,6 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:theme="@style/AppTheme.NoActionBar"
-        android:background="#F44336"/>
+        android:background="#F44336"
+        android:onClick="captureVideo"/>
 </RelativeLayout>

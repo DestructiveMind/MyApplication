@@ -29,8 +29,7 @@
                 android:layout_centerHorizontal="true"
                 android:text="Record"
                 android:textColor="@android:color/white"
-                android:textSize="15dp"
-                />
+                android:textSize="15dp"/>
 
         </RelativeLayout>
     <TextView

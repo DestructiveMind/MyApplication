@@ -3,4 +3,7 @@
     <string name="new_note">New Note</string>
     <string name="camera">Camera</string>
     <string name="title_activity_audio_recording">AudioRecordingActivity</string>
+    <string name="file_name">File Name</string>
+    <string name="fileNameHere">Type File Name Here...</string>
+    <string name="file_location">File Location</string>
 </resources>

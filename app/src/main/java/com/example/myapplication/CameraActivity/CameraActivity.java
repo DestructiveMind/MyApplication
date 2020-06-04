@@ -5,10 +5,14 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera;
+import android.media.MediaActionSound;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.example.myapplication.R;
 
@@ -39,6 +43,8 @@ public class CameraActivity extends AppCompatActivity {
             public void onPictureTaken(byte[] bytes, Camera camera) {
                 Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 Bitmap cbmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), null, true);
+                mCapture.setVisibility(View.GONE);
+                Toast.makeText(CameraActivity.this, "Picture Captured", Toast.LENGTH_SHORT).show();
             }
         };
 
