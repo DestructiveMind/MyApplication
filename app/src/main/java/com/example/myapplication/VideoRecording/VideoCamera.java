@@ -10,6 +10,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -62,14 +63,14 @@ public class VideoCamera extends AppCompatActivity implements LifecycleOwner {
             {
                 videoUri = data.getData();
                 Toast.makeText(this, "Video saved to: \n" + data.getData(), Toast.LENGTH_LONG).show();
+                Intent mHomeIntent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivityForResult(mHomeIntent, 0);
             }
             if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(this, "Video recording cancelled.",
                         Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(this, "Failed to record video",
-                        Toast.LENGTH_LONG).show();
             }
+
         }
 
 

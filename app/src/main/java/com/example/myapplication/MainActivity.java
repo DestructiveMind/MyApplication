@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.OnLifecycleEvent;
 
 import android.provider.ContactsContract;
 import android.util.Log;
@@ -31,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
 DatabaseHelper mDatabaseHelper;
 ListView mListView;
 ArrayList<String> listData= new ArrayList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,38 +42,37 @@ ArrayList<String> listData= new ArrayList<>();
         mListView = (ListView) findViewById(R.id.listView);
         mDatabaseHelper = new DatabaseHelper(this);
 
+
         populateListView();
     }
-    private void populateListView(){
+    private void populateListView() {
         Cursor data = mDatabaseHelper.getData();
 
-            while(data.moveToNext()) {
-                listData.add(data.getString(1));
+        while (data.moveToNext()) {
+            listData.add(data.getString(1));
+        }
+        ListAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listData);
+        mListView.setAdapter(adapter);
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String name = parent.getItemAtPosition(position).toString();
+
+                Cursor data = mDatabaseHelper.getItemID(name);
+                int itemID = -1;
+                while (data.moveToNext()) {
+                    itemID = data.getInt(0);
+                }
+                if (itemID > -1) {
+                    Intent editScreenIntent = new Intent(MainActivity.this, EditNotesActivity.class);
+                    editScreenIntent.putExtra("id", itemID);
+                    editScreenIntent.putExtra("name", name);
+                    startActivity(editScreenIntent);
+                }
             }
-                ListAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listData);
-                mListView.setAdapter(adapter);
-
-                mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        String name = parent.getItemAtPosition(position).toString();
-
-                        Cursor data = mDatabaseHelper.getItemID(name);
-                        int itemID = -1;
-                        while(data.moveToNext()){
-                            itemID = data.getInt(0);
-                        }
-                        if(itemID > -1){
-                            Intent editScreenIntent = new Intent(MainActivity.this, EditNotesActivity.class);
-                            editScreenIntent.putExtra("id", itemID);
-                            editScreenIntent.putExtra("name", name);
-                            startActivity(editScreenIntent);
-                        }
-                    }
-                });
-            }
-
-
+        });
+    }
 
 
     @Override
@@ -118,4 +117,5 @@ ArrayList<String> listData= new ArrayList<>();
         return super.onOptionsItemSelected(item);
     }
 
-}
+    }
+
