@@ -5,12 +5,12 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -20,7 +20,7 @@ import com.example.myapplication.Transcription.Transcriber;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 
 import androidx.annotation.RequiresApi;
@@ -31,7 +31,7 @@ import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
-public class AudioRecordingActivity extends Transcriber {
+public class AudioRecordingActivity extends Transcriber{
     Button mRecord;
     String AudioSavePathInDevice = null;
     public static final int RequestPermissionCode = 1000;
@@ -42,6 +42,7 @@ public class AudioRecordingActivity extends Transcriber {
     private Boolean currentlyRecording;
     private MediaRecorder recorder = new MediaRecorder();
     private Handler handler = new Handler();
+    //Speech mSpeech;
 
     //Runnable updater
     final Runnable updater = new Runnable() {
@@ -56,12 +57,28 @@ public class AudioRecordingActivity extends Transcriber {
     };
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_notes, menu);
+        menu.findItem(R.id.delete).setVisible(false);
+        menu.findItem(R.id.delete).setEnabled(false);
+        menu.findItem(R.id.save).setEnabled(false);
+        menu.findItem(R.id.save).setVisible(false);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        return true;
+    }
+
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_recording);
         visualizerView = findViewById(R.id.visualizer);
         returnedText = findViewById(R.id.transcribeNote);
         mRecord = findViewById(R.id.recordAudio);
+
+
         mRecord.setTag(1);
         mRecord.setText("Record");
         Log.d("Audio Recorder", mRecord.toString());
@@ -86,7 +103,6 @@ public class AudioRecordingActivity extends Transcriber {
 
                         // start listening
                         speech.startListening(recognizerIntent);
-
                         //try to prepare and start the recorder
                         try {
                             recorder.prepare();
