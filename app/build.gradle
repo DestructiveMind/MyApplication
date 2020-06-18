@@ -16,6 +16,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude("META-INF/*.kotlin_module")
+    }
 }
 
 dependencies {
@@ -31,9 +43,17 @@ dependencies {
     implementation 'com.android.support:design:28.0.0'
     implementation 'com.android.support:support-v13:28.0.0'
     implementation 'net.rdrei.android.dirchooser:library:3.2@aar'
-    implementation 'com.google.api-client:google-api-client-android:1.22.0'
-    implementation 'com.google.apis:google-api-services-speech:v1beta1-rev336-1.22.0'
-    implementation 'com.google.apis:google-api-services-language:v1beta2-rev6-1.22.0'
+    implementation 'com.google.cloud:google-cloud-speech:1.23.0'
     implementation 'com.google.code.findbugs:jsr305:2.0.1'
 }
+
+task copySecretKey(type: Copy) {
+    File secretKey = file "src/main/res/raw"
+    from secretKey.getParent()
+    include secretKey.getName()
+    into 'src/main/res/raw'
+    rename secretKey.getName(), "credential.json"
+}
+
+preBuild.dependsOn(copySecretKey)
 

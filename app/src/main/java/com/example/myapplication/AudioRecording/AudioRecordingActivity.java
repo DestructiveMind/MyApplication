@@ -1,6 +1,7 @@
 package com.example.myapplication.AudioRecording;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.MediaPlayer;
@@ -14,6 +15,29 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+
+import com.google.api.client.util.IOUtils;
+import com.google.auth.oauth2.AccessToken;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.speech.v1.RecognitionAudio;
+import com.google.cloud.speech.v1.RecognitionConfig;
+import com.google.cloud.speech.v1.RecognitionConfig.AudioEncoding;
+import com.google.cloud.speech.v1.RecognizeResponse;
+import com.google.cloud.speech.v1.SpeechClient;
+import com.google.cloud.speech.v1.SpeechRecognitionAlternative;
+import com.google.cloud.speech.v1.SpeechRecognitionResult;
+import com.google.protobuf.ByteString;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+
 
 import com.example.myapplication.R;
 import com.example.myapplication.Transcription.Transcriber;
@@ -32,6 +56,7 @@ import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class AudioRecordingActivity extends Transcriber {
+    private static final String PREF_ACCESS_TOKEN_EXPIRATION_TIME = "2000";
     Button mRecord;
     String AudioSavePathInDevice = null;
     public static final int RequestPermissionCode = 1000;
@@ -42,6 +67,7 @@ public class AudioRecordingActivity extends Transcriber {
     private Boolean currentlyRecording;
     private MediaRecorder recorder = new MediaRecorder();
     private Handler handler = new Handler();
+
 
     //Runnable updater
     final Runnable updater = new Runnable() {
@@ -143,7 +169,43 @@ public class AudioRecordingActivity extends Transcriber {
                             file_names.append(file).append(" ");
                         }
 
-                        returnedText.setText(file_names.toString());
+                        ////////////////////////////
+
+                        // Instantiates a client
+                        try (SpeechClient speechClient = SpeechClient.create()) {
+                            Context context = getApplicationContext();
+                            FileInputStream fis = context.openFileInput("temp");
+                            byte[] audioContents = IOUtils.deserialize(fis);
+
+
+                            ByteString audioBytes = ByteString.copyFrom(audioContents);
+
+                            // Builds the sync recognize request
+                            RecognitionConfig config =
+                                    RecognitionConfig.newBuilder()
+                                            .setEncoding(AudioEncoding.LINEAR16)
+                                            .setSampleRateHertz(16000)
+                                            .setLanguageCode("en-US")
+                                            .build();
+                            RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
+
+                            // Performs speech recognition on the audio file
+                            RecognizeResponse response = speechClient.recognize(config, audio);
+                            List<SpeechRecognitionResult> results = response.getResultsList();
+
+                            for (SpeechRecognitionResult result : results) {
+                                // There can be several alternative transcripts for a given chunk of speech. Just use the
+                                // first (most likely) one here.
+                                SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+                                System.out.printf("Transcription: %s%n", alternative.getTranscript());
+                                returnedText.setText(alternative.getTranscript());
+                            }
+                        } catch (java.io.IOException e) {
+                            Log.d("Speech Translator", e.toString());
+                        }
+
+
+                        /////////////////
                     }
                 } else {
                     //if the user has not provided permission
@@ -152,6 +214,8 @@ public class AudioRecordingActivity extends Transcriber {
             }
         });
     }
+
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void MediaRecorderReady() {
