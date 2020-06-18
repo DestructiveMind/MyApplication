@@ -1,9 +1,6 @@
 package com.example.myapplication.Transcription;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,21 +10,13 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ToggleButton;
-
-import com.example.myapplication.AudioRecording.AudioRecordingActivity;
-import com.example.myapplication.R;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class Transcriber extends Activity implements RecognitionListener {
+public class Transcriber extends AppCompatActivity implements RecognitionListener {
 
 
     public TextView returnedText;
