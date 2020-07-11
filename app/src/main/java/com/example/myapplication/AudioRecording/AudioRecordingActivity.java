@@ -19,7 +19,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.example.myapplication.R;
 import com.example.myapplication.Transcription.Transcriber;
 import com.google.api.client.util.IOUtils;
 import com.google.auth.Credentials;
@@ -70,6 +69,9 @@ import io.grpc.okhttp.OkHttpChannelProvider;
 import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static com.example.myapplication.R.id;
+import static com.example.myapplication.R.layout;
+import static com.example.myapplication.R.raw.credential;
 
 public class AudioRecordingActivity extends Transcriber {
     Button mRecord;
@@ -84,15 +86,18 @@ public class AudioRecordingActivity extends Transcriber {
     private Handler handler = new Handler();
 
 
-
     //////GOOGLE API VARIABLES/////
     private static final String PREFS = "SpeechService";
     private static final String PREF_ACCESS_TOKEN_VALUE = "access_token_value";
     private static final String PREF_ACCESS_TOKEN_EXPIRATION_TIME = "2000";
 
-    /** We reuse an access token if its expiration time is longer than this. */
+    /**
+     * We reuse an access token if its expiration time is longer than this.
+     */
     private static final int ACCESS_TOKEN_EXPIRATION_TOLERANCE = 30 * 60 * 1000; // thirty minutes
-    /** We refresh the current access token before it expires. */
+    /**
+     * We refresh the current access token before it expires.
+     */
     private static final int ACCESS_TOKEN_FETCH_MARGIN = 60 * 1000; // one minute
 
     public static final List<String> SCOPE =
@@ -104,7 +109,7 @@ public class AudioRecordingActivity extends Transcriber {
     private final ArrayList<Listener> mListeners = new ArrayList<>();
     private volatile AccessTokenTask mAccessTokenTask;
     private SpeechGrpc.SpeechStub mApi;
-        private static Handler mHandler;
+    private static Handler mHandler;
 
 
     //GOOGLE LISTENER
@@ -127,6 +132,7 @@ public class AudioRecordingActivity extends Transcriber {
         mAccessTokenTask = new AccessTokenTask();
         mAccessTokenTask.execute();
     }
+
     private class SpeechBinder extends Binder {
 
         AudioRecordingActivity getService() {
@@ -142,6 +148,7 @@ public class AudioRecordingActivity extends Transcriber {
             fetchAccessToken();
         }
     };
+
     private class AccessTokenTask extends AsyncTask<Void, Void, AccessToken> {
 
         @Override
@@ -158,7 +165,7 @@ public class AudioRecordingActivity extends Transcriber {
                     return new AccessToken(tokenValue, new Date(expirationTime));
                 }
             }
-            final InputStream stream = getResources().openRawResource(R.raw.credential);
+            final InputStream stream = getResources().openRawResource(credential);
             try {
                 final GoogleCredentials credentials = GoogleCredentials.fromStream(stream)
                         .createScoped(SCOPE);
@@ -174,6 +181,7 @@ public class AudioRecordingActivity extends Transcriber {
             }
             return null;
         }
+
         @Override
         protected void onPostExecute(AccessToken accessToken) {
             mAccessTokenTask = null;
@@ -196,27 +204,27 @@ public class AudioRecordingActivity extends Transcriber {
         }
     }
 
-        ////////////
-        //Runnable updater
-        final Runnable updater = new Runnable() {
-            @Override
-            public void run() {
-                handler.postDelayed(this, 1);
-                int maxAmplitude = recorder.getMaxAmplitude();
-                if (maxAmplitude != 0) {
-                    visualizerView.addAmplitude(maxAmplitude);
-                }
+    ////////////
+    //Runnable updater
+    final Runnable updater = new Runnable() {
+        @Override
+        public void run() {
+            handler.postDelayed(this, 1);
+            int maxAmplitude = recorder.getMaxAmplitude();
+            if (maxAmplitude != 0) {
+                visualizerView.addAmplitude(maxAmplitude);
             }
-        };
+        }
+    };
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_audio_recording);
-        visualizerView = findViewById(R.id.visualizer);
-        returnedText = findViewById(R.id.transcribeNote);
-        mRecord = findViewById(R.id.recordAudio);
+        setContentView(layout.activity_audio_recording);
+        visualizerView = findViewById(id.visualizer);
+        returnedText = findViewById(id.transcribeNote);
+        mRecord = findViewById(id.recordAudio);
         mRecord.setTag(1);
         mRecord.setText("Record");
         Log.d("Audio Recorder", mRecord.toString());
@@ -225,12 +233,12 @@ public class AudioRecordingActivity extends Transcriber {
         fetchAccessToken();
 
 
-                mRecord.setOnClickListener(new View.OnClickListener() {
-                    @RequiresApi(api = Build.VERSION_CODES.O)
-                    public void onClick(View v) {
+        mRecord.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            public void onClick(View v) {
                 final int status = (Integer) v.getTag();
                 Log.d("Audio Status", "Permissions status: " + Boolean.toString(checkPermission()));
-
+                final InputStream stream = getResources().openRawResource(credential);
                 //check if the user has provided permission
                 if (checkPermission()) {
                     //check if the app is currently recording
@@ -248,6 +256,7 @@ public class AudioRecordingActivity extends Transcriber {
                         try {
                             recorder.prepare();
                             recorder.start();
+
                         } catch (IllegalStateException | IOException e) {
                             Log.d("Start Recording Error", e.toString());
                         }
@@ -306,40 +315,39 @@ public class AudioRecordingActivity extends Transcriber {
                             public void run() {
 
 
+                                try (SpeechClient speechClient = SpeechClient.create()) {
+                                    Context context = getApplicationContext();
+                                    FileInputStream fis = context.openFileInput("temp");
+                                    byte[] audioContents = IOUtils.deserialize(fis);
 
-                        try (SpeechClient speechClient = SpeechClient.create()) {
-                            Context context = getApplicationContext();
-                            FileInputStream fis = context.openFileInput("temp");
-                            byte[] audioContents = IOUtils.deserialize(fis);
 
+                                    ByteString audioBytes = ByteString.copyFrom(audioContents);
 
-                            ByteString audioBytes = ByteString.copyFrom(audioContents);
+                                    // Builds the sync recognize request
+                                    RecognitionConfig config =
+                                            RecognitionConfig.newBuilder()
+                                                    .setEncoding(AudioEncoding.LINEAR16)
+                                                    .setSampleRateHertz(16000)
+                                                    .setLanguageCode("en-US")
+                                                    .build();
+                                    RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
 
-                            // Builds the sync recognize request
-                            RecognitionConfig config =
-                                    RecognitionConfig.newBuilder()
-                                            .setEncoding(AudioEncoding.LINEAR16)
-                                            .setSampleRateHertz(16000)
-                                            .setLanguageCode("en-US")
-                                            .build();
-                            RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
+                                    // Performs speech recognition on the audio file
+                                    RecognizeResponse response = speechClient.recognize(config, audio);
+                                    List<SpeechRecognitionResult> results = response.getResultsList();
 
-                            // Performs speech recognition on the audio file
-                            RecognizeResponse response = speechClient.recognize(config, audio);
-                            List<SpeechRecognitionResult> results = response.getResultsList();
-
-                            for (SpeechRecognitionResult result : results) {
-                                // There can be several alternative transcripts for a given chunk of speech. Just use the
-                                // first (most likely) one here.
-                                SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
-                                System.out.printf("Transcription: %s%n", alternative.getTranscript());
-                                returnedText.setText(alternative.getTranscript());
+                                    for (SpeechRecognitionResult result : results) {
+                                        // There can be several alternative transcripts for a given chunk of speech. Just use the
+                                        // first (most likely) one here.
+                                        SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+                                        System.out.printf("Transcription: %s%n", alternative.getTranscript());
+                                        returnedText.setText(alternative.getTranscript());
+                                    }
+                                } catch (java.io.IOException e) {
+                                    Log.d("Speech Translator", e.toString());
+                                }
                             }
-                        } catch (java.io.IOException e) {
-                            Log.d("Speech Translator", e.toString());
-                        }
-                    }
-                }).start();
+                        }).start();
                         /////////////////
                     }
 
@@ -387,7 +395,6 @@ public class AudioRecordingActivity extends Transcriber {
     }
 
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -424,16 +431,16 @@ public class AudioRecordingActivity extends Transcriber {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-       mHandler.removeCallbacks(mFetchAccessTokenRunnable);
-       mHandler = null;
+        mHandler.removeCallbacks(mFetchAccessTokenRunnable);
+        mHandler = null;
         // handler.removeCallbacks(updater);
-      //  handler.removeCallbacks(updater);
+        //  handler.removeCallbacks(updater);
         if (currentlyRecording && mApi != null) {
             recorder.stop();
             recorder.reset();
             recorder.release();
             final ManagedChannel channel = (ManagedChannel) mApi.getChannel();
-            if (channel != null && !channel.isShutdown()){
+            if (channel != null && !channel.isShutdown()) {
                 try {
                     channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
                 } catch (InterruptedException d) {
@@ -443,6 +450,7 @@ public class AudioRecordingActivity extends Transcriber {
             mApi = null;
         }
     }
+
     private String getDefaultLanguageCode() {
         final Locale locale = Locale.getDefault();
         final StringBuilder language = new StringBuilder(locale.getLanguage());
@@ -453,14 +461,16 @@ public class AudioRecordingActivity extends Transcriber {
         }
         return language.toString();
     }
+
     @Nullable
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-       // handler.post(updater);
+        // handler.post(updater);
     }
 
     /**
